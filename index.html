@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webcam Mirror</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: #0b1020;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #aab6cc;
+    }
+
+    .camera-box {
+      margin-top: 28px;
+      padding: 12px;
+      background: #161e30;
+      border: 1px solid #293750;
+      border-radius: 18px;
+    }
+
+    video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      transform: scaleX(-1);
+      background: #05070c;
+      border-radius: 12px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    button {
+      padding: 13px 22px;
+      border: none;
+      border-radius: 9px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #start {
+      background: #82aaff;
+      color: #081020;
+    }
+
+    #stop {
+      background: #293750;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    #status {
+      margin-top: 18px;
+      min-height: 24px;
+    }
+
+    .footer {
+      margin-top: 24px;
+      font-size: 13px;
+      color: #8290a8;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Webcam Mirror</h1>
+    <p>A simple webcam application — ready for MediaPipe later.</p>
+
+    <div class="camera-box">
+      <video id="video" autoplay playsinline muted></video>
+
+      <div class="buttons">
+        <button id="start">Start Camera</button>
+        <button id="stop" disabled>Stop Camera</button>
+      </div>
+
+      <p id="status">Camera is off.</p>
+    </div>
+
+    <div class="footer">
+      Your webcam video stays in your browser.
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById("video");
+    const start = document.getElementById("start");
+    const stop = document.getElementById("stop");
+    const status = document.getElementById("status");
+
+    let stream = null;
+
+    start.addEventListener("click", async () => {
+      try {
+        status.textContent = "Requesting camera permission...";
+
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+
+        video.srcObject = stream;
+
+        start.disabled = true;
+        stop.disabled = false;
+        status.textContent = "Camera is running!";
+      } catch (error) {
+        status.textContent =
+          "Cannot access camera. Please allow camera permission.";
+        console.error(error);
+      }
+    });
+
+    stop.addEventListener("click", () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+
+      video.srcObject = null;
+      start.disabled = false;
+      stop.disabled = true;
+      status.textContent = "Camera is off.";
+    });
+
+    window.addEventListener("pagehide", () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    });
+  </script>
+</body>
+</html>
